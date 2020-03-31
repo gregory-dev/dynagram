@@ -2,7 +2,7 @@
 from django.http import HttpResponse
 
 def test_method(request):
-  print(request)
+  print(request.GET.get('args'))
 
   return HttpResponse('test_method')
 
