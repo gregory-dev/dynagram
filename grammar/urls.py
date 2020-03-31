@@ -16,8 +16,8 @@ def generate_paths(method):
   return path(
     '{}/'.format(name),
     include([
-      path('info/', info(method)),
-      path('run/', method),
+      path('info', info(method)),
+      path('run', method),
     ]),
   )
 
