@@ -187,8 +187,21 @@ if errors.messages:
 return HttpResponse(rendered_grammar)
 ```
 
-The method can now be run as a request handler.
+6. Add the method to the `methods/__init__.py`:
 
-6. Test the handler's behaviour by writing a test in the `dynagram/grammar/methods/tests` directory.
+```python
+# dynagram/grammar/methods/__init__.py
+
+from .new_grammar import new_grammar
+
+methods = [
+  new_grammar,
+]
+
+```
+
+The method can now be run as a request handler using `http://localhost:8000/api/new_grammar/run`.
+
+7. Test the handler's behaviour by writing a test in the `dynagram/grammar/methods/tests` directory.
 
 Name the test `test_<method_name>.py`.
