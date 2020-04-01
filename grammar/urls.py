@@ -6,7 +6,7 @@ from django.urls import path, include
 
 def info(method):
   def view(request):
-    return JsonResponse(method.requirements)
+    return JsonResponse(method.info)
 
   return view
 
@@ -23,7 +23,7 @@ def generate_paths(method):
 
 def methods_info(request):
   info = {
-    method.__name__: method.requirements
+    method.__name__: method.info
     for method
     in methods
   }

@@ -1,5 +1,5 @@
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 grammar = '''
 <?xml version="1.0" encoding="ISO-8859-1" ?>
@@ -57,11 +57,79 @@ grammar = '''
 </grammar>
 '''
 
+decoy_info = {
+  'description': 'The decoy method',
+  'requirements': {
+    'required_type': {
+      'type': 'str',
+      'options': {
+        'word': 'A single word',
+      },
+    },
+    'truth': {
+      'type': 'str',
+      'description': 'A string representing the truth value',
+    },
+    'decoy': {
+      'type': 'str',
+      'description': 'A string representing the decoy value',
+    },
+    'slot_value': {
+      'type': 'str',
+      'description': 'A string',
+    }
+  }
+}
+
+class Errors:
+  def __init__(self):
+    self.messages = []
+
+  def add(self, message):
+    self.messages.append(message)
+
+  def render(self):
+    return JsonResponse({
+      'errors': self.messages,
+    })
+
+def get_and_validate_argument(info=None, errors=None, request=None, argument=None):
+  if argument is None or request is None:
+    return None
+
+  from_request = request.GET.get(argument)
+
+  if from_request is None:
+    if errors is not None:
+      errors.add('{} is missing.'.format(argument))
+
+    return None
+
+  if info is None or 'requirements' not in info:
+    return from_request
+
+  info_type = info.get('requirements').get(argument).get('type')
+
+  if info_type is None:
+    return from_request
+
+  if info_type != type(from_request).__name__:
+    errors.add('Argument {} with value <{}> is not of type <{}>.'.format(argument, from_request, info_type))
+
+  return from_request
+
 def decoy(request):
-  required_type = request.GET.get('required_type')
-  truth = request.GET.get('truth')
-  decoy = request.GET.get('decoy')
-  slot_value = request.GET.get('slot_value')
+  errors = Errors()
+  kwargs = {
+    'info': decoy_info,
+    'errors': errors,
+    'request': request,
+  }
+
+  required_type = get_and_validate_argument(**kwargs, argument='required_type')
+  truth = get_and_validate_argument(**kwargs, argument='truth')
+  decoy = get_and_validate_argument(**kwargs, argument='decoy')
+  slot_value = get_and_validate_argument(**kwargs, argument='slot_value')
   rendered_grammar = grammar.format(
     required_type=required_type,
     truth=truth,
@@ -69,16 +137,9 @@ def decoy(request):
     slot_value=slot_value,
   )
 
+  if errors.messages:
+    return errors.render()
+
   return HttpResponse(rendered_grammar)
 
-decoy.requirements = {
-  'required_type': {
-    'type': 'string',
-    'options': {
-      'word': 'A single word',
-    },
-  },
-  'truth': 'A string representing the truth value',
-  'decoy': 'A string representing the decoy value',
-  'slot_value': 'A string',
-}
+decoy.info = decoy_info
