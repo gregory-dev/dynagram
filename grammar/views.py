@@ -1,6 +1,8 @@
 
 from django.http import JsonResponse
 
+from .methods import methods
+
 def info(method):
   def view(request):
     return JsonResponse(method.info)
