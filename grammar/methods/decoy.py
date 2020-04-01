@@ -1,5 +1,7 @@
 
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
+
+from .utilities import method_validator
 
 grammar = '''
 <?xml version="1.0" encoding="ISO-8859-1" ?>
@@ -81,55 +83,14 @@ decoy_info = {
   }
 }
 
-class Errors:
-  def __init__(self):
-    self.messages = []
-
-  def add(self, message):
-    self.messages.append(message)
-
-  def render(self):
-    return JsonResponse({
-      'errors': self.messages,
-    })
-
-def get_and_validate_argument(info=None, errors=None, request=None, argument=None):
-  if argument is None or request is None:
-    return None
-
-  from_request = request.GET.get(argument)
-
-  if from_request is None:
-    if errors is not None:
-      errors.add('{} is missing.'.format(argument))
-
-    return None
-
-  if info is None or 'requirements' not in info:
-    return from_request
-
-  info_type = info.get('requirements').get(argument).get('type')
-
-  if info_type is None:
-    return from_request
-
-  if info_type != type(from_request).__name__:
-    errors.add('Argument {} with value <{}> is not of type <{}>.'.format(argument, from_request, info_type))
-
-  return from_request
-
 def decoy(request):
-  errors = Errors()
-  kwargs = {
-    'info': decoy_info,
-    'errors': errors,
-    'request': request,
-  }
+  validator, errors = method_validator(info=decoy_info, request=request)
 
-  required_type = get_and_validate_argument(**kwargs, argument='required_type')
-  truth = get_and_validate_argument(**kwargs, argument='truth')
-  decoy = get_and_validate_argument(**kwargs, argument='decoy')
-  slot_value = get_and_validate_argument(**kwargs, argument='slot_value')
+  required_type = validator('required_type')
+  truth = validator('truth')
+  decoy = validator('decoy')
+  slot_value = validator('slot_value')
+
   rendered_grammar = grammar.format(
     required_type=required_type,
     truth=truth,
