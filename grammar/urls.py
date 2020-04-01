@@ -22,7 +22,7 @@ methods_urlpatterns = [
 ]
 
 info_urlpatterns = [
-  path('info/', methods_info),
+  path('info', methods_info),
 ]
 
 urlpatterns = methods_urlpatterns + info_urlpatterns
