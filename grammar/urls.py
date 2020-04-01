@@ -1,14 +1,8 @@
 
-from .methods import methods
-
-from django.http import JsonResponse
 from django.urls import path, include
 
-def info(method):
-  def view(request):
-    return JsonResponse(method.info)
-
-  return view
+from .methods import methods
+from .views import info, methods_info
 
 def generate_paths(method):
   name = method.__name__
@@ -20,15 +14,6 @@ def generate_paths(method):
       path('run', method),
     ]),
   )
-
-def methods_info(request):
-  info = {
-    method.__name__: method.info
-    for method
-    in methods
-  }
-
-  return JsonResponse(info)
 
 methods_urlpatterns = [
   generate_paths(method)
