@@ -5,6 +5,7 @@ include/
 lib/
 *.cfg
 __pycache__/
+*.pyc
 
 # Django
 *.sqlite3
